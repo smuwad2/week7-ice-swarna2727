@@ -263,19 +263,6 @@
 
         <div class="row justify-content-center p-3 border" v-else>
             <div class="col-sm-12">
-
-                <!-- 
-                    v-if has higher precedence than v-for. 
-
-                    If I do this:
-                        <button v-for='details in buttonDetails' v-if='details.show' ...>
-                    v-if will be executed before v-for. 
-                    As variable 'details' has not been set by v-for, v-if='details.show' will fail because
-                    variable 'details' is undefined.
-                    
-                    Ref: https://v3.vuejs.org/guide/list.html#v-for-with-v-if
-                    Apply v-for in a wrapping <template> before v-if in the button.
-                -->
                 <template v-for='details in buttonDetails'>
                     <button v-if='details.show' :class='"btn " + details.btnType'
                         @click="doAction(details.action)">{{details.value}}</button>

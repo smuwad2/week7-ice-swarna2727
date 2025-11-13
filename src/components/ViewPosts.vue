@@ -1,13 +1,10 @@
-<script setup>
-    import axios from 'axios';
-</script>
-
 <script>
+import axios from 'axios';
 export default {
     data() {
         return {
             moods: ["Happy", "Sad", "Angry"],
-            posts: [], // array of post objects
+            posts: [],
             entry: "",
             mood: "",
             showEditPost: false,
@@ -24,10 +21,9 @@ export default {
             }
         }
     },
-    created() { // created is a hook that executes as soon as Vue instance is created
+    created() {
         axios.get(`${this.baseUrl}/posts`)
             .then(response => {
-                // this gets the data, which is an array, and pass the data to Vue instance's posts property
                 this.posts = response.data
             })
             .catch(error => {
@@ -36,40 +32,34 @@ export default {
     },
     methods: {
         editPost(id) {
-            const post = this.posts.find(post => post.id === id)
-            if (post) {
-                this.entry = post.entry;
-                this.mood = (post.mood || '').toString().toLowerCase();
+            let postToBeEdited = this.posts.find(post => post.id == id)
+            if (postToBeEdited) {
+                this.entry = postToBeEdited.entry;
+                this.mood = postToBeEdited.mood;
                 this.showEditPost = true;
                 this.editPostId = id;
-
-
             }
         },
         updatePost() {
-            // event.preventDefault(); // Prevent form submission
-            const update = {
-                mood : this.mood,
-                entry : this.entry
+            const postData = {
+                entry: this.entry,
+                mood: this.mood
             };
+            axios.post(`${this.baseUrl}/updatePost?id=${this.editPostId}`, postData)
+                .then(response => {
+                    console.log('Post updated successfully');
+                   
+                    let updatedPost = this.posts.find(post => post.id == this.editPostId)
+                    updatedPost.entry  = this.entry;
+                    updatedPost.mood = this.mood;
 
-            axios.post(`${this.baseUrl}/updatePost?id=${this.editPostId}`, update)
-            .then(response => {
-                console.log("Post updated successfully!");
-
-                let updatedPost = this.posts.find(post => post.id === this.editPostId)
-                updatedPost.entry=this.entry
-                updatedPost.mood=this.mood
-                this.showEditPost=false
-                this.entry=''
-                this.mood=''
-            })
-
-            .catch(error => {
-                this.posts = [{ entry: 'There was an error: ' + error.message }]
-            })
-
-            
+                    this.showEditPost = false; // Hide the edit form after updating
+                    this.entry = ""; // Clear the entry field
+                    this.mood = ""; // Clear the mood field
+                })
+                .catch(error => {
+                    console.error('Error updating post:', error);
+                });
         }
     }
 }
@@ -100,7 +90,7 @@ export default {
         <div id="editPost" v-if="showEditPost">
             <h3>Edit Post</h3>
             <div id="postContent" class="mx-3">
-                <form @submit.prevent="updatePost">
+                <form @submit="updatePost">
                     <div class="mb-3">
                         <label for="entry" class="form-label">Entry</label>
                         <textarea id="entry" class="form-control" v-model="entry" required></textarea>
@@ -109,7 +99,7 @@ export default {
                         <label for="mood" class="form-label">Mood</label>
                         <select id="mood" class="form-select" v-model="mood" required>
                             <option value="" disabled>Select Mood</option>
-                            <option v-for="mood in moods" :value="mood.toLowerCase()">{{ mood }}</option>
+                            <option v-for="mood in moods" :value="mood">{{ mood }}</option>
                         </select>
                     </div>
                     <button type="submit" class="btn btn-primary" @click="updatePost">Update Post</button>
